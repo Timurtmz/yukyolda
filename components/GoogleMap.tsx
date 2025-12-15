@@ -66,13 +66,19 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
 
   // Load Google Maps script
   useEffect(() => {
+    // Global Auth Failure Handler
+    (window as any).gm_authFailure = () => {
+      console.error("Google Maps Auth Failure");
+      setError("Google Maps Kimlik Doğrulama Hatası! (API Key geçersiz veya domain kısıtlaması hatalı)");
+    };
+
     if (window.google) {
       setIsLoaded(true);
       return;
     }
 
     if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE' || apiKey === '') {
-      setError('Google Maps API key bulunamadı. Lütfen .env.local dosyasında VITE_GOOGLE_MAPS_API_KEY değerini ayarlayın veya Vercel\'de environment variable ekleyin.');
+      setError('Google Maps API key bulunamadı. Lütfen .env.local dosyasında veya Vercel ayarlarında VITE_GOOGLE_MAPS_API_KEY değerini kontrol edin.');
       return;
     }
 
@@ -82,11 +88,13 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
     script.defer = true;
     
     window.initMap = () => {
+      console.log("Google Maps loaded successfully");
       setIsLoaded(true);
     };
 
     script.onerror = () => {
-      setError('Google Maps yüklenemedi. API key\'inizi kontrol edin.');
+      console.error("Google Maps script load error");
+      setError('Google Maps script dosyası yüklenemedi. Ağ bağlantısını veya API key\'i kontrol edin.');
     };
 
     document.head.appendChild(script);
@@ -95,6 +103,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       if (window.initMap) {
         delete window.initMap;
       }
+      // Cleanup global handler
+      delete (window as any).gm_authFailure;
     };
   }, [apiKey]);
 
@@ -102,38 +112,47 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   useEffect(() => {
     if (!isLoaded || !mapRef.current || !window.google) return;
 
-    const mapInstance = new window.google.maps.Map(mapRef.current, {
-      zoom: 6,
-      center: { lat: 39.9334, lng: 32.8597 }, // Ankara center
-      styles: darkMode ? darkMapStyle : [],
-      disableDefaultUI: !showControls,
-      zoomControl: showControls,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: showControls,
-    });
+    try {
+      console.log("Initializing Map...");
+      const mapInstance = new window.google.maps.Map(mapRef.current, {
+        zoom: 6,
+        center: { lat: 39.9334, lng: 32.8597 }, // Ankara center
+        styles: darkMode ? darkMapStyle : [],
+        disableDefaultUI: !showControls,
+        zoomControl: showControls,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: showControls,
+      });
 
-    setMap(mapInstance);
+      setMap(mapInstance);
 
-    const directionsServiceInstance = new window.google.maps.DirectionsService();
-    const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
-      map: mapInstance,
-      suppressMarkers: false,
-      polylineOptions: {
-        strokeColor: routeColor,
-        strokeWeight: 6,
-        strokeOpacity: 0.8,
-      },
-    });
+      const directionsServiceInstance = new window.google.maps.DirectionsService();
+      const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
+        map: mapInstance,
+        suppressMarkers: false,
+        polylineOptions: {
+          strokeColor: routeColor,
+          strokeWeight: 6,
+          strokeOpacity: 0.8,
+        },
+      });
 
-    setDirectionsService(directionsServiceInstance);
-    setDirectionsRenderer(directionsRendererInstance);
+      setDirectionsService(directionsServiceInstance);
+      setDirectionsRenderer(directionsRendererInstance);
+      console.log("Map initialized successfully");
+    } catch (err) {
+      console.error("Map initialization error:", err);
+      setError(`Harita başlatılırken hata oluştu: ${err}`);
+    }
   }, [isLoaded, darkMode, routeColor, showControls]);
 
   // Calculate and display route
   useEffect(() => {
     if (!directionsService || !directionsRenderer || !origin || !destination) return;
 
+    console.log(`Calculating route: ${origin} -> ${destination}`);
+    
     const request: any = {
       origin,
       destination,
@@ -153,23 +172,25 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         const leg = route.legs[0];
         const distance = leg.distance.value / 1000; // km
         const duration = leg.duration.value / 60; // minutes
+        
+        console.log(`Route calculated: ${distance}km, ${duration}min`);
 
         if (onRouteCalculated) {
           onRouteCalculated(distance, duration);
         }
       } else {
-        console.error('Rota hesaplanamadı:', status);
-        setError('Rota hesaplanamadı. Lütfen adresleri kontrol edin.');
+        console.error('Route calculation failed:', status);
+        setError(`Rota hesaplanamadı: ${status}. Adresleri kontrol edin veya API Key'de 'Global Directions API' açık mı bakın.`);
       }
     });
   }, [directionsService, directionsRenderer, origin, destination, waypoints, onRouteCalculated]);
 
   if (error) {
     return (
-      <div className="w-full h-full bg-brand-dark flex items-center justify-center text-red-400 p-4 text-center">
+      <div className="w-full h-full bg-slate-900 border-2 border-red-500/50 flex items-center justify-center text-red-200 p-4 text-center rounded-lg">
         <div>
-          <p className="font-bold mb-2">⚠️ Harita Yüklenemedi</p>
-          <p className="text-sm">{error}</p>
+          <p className="font-bold mb-2 text-xl">⚠️ Harita Hatası</p>
+          <p className="text-sm font-mono bg-black/50 p-2 rounded">{error}</p>
         </div>
       </div>
     );
@@ -177,8 +198,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
 
   if (!isLoaded) {
     return (
-      <div className="w-full h-full bg-brand-dark flex items-center justify-center">
-        <div className="text-brand-muted">
+      <div className="w-full h-full bg-slate-900 flex items-center justify-center rounded-lg border border-slate-700">
+        <div className="text-brand-muted text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-orange mx-auto mb-2"></div>
           <p className="text-sm">Harita yükleniyor...</p>
         </div>
@@ -190,7 +211,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
     <div 
       ref={mapRef} 
       style={{ height, width: '100%' }}
-      className="rounded-lg overflow-hidden"
+      className="rounded-lg overflow-hidden bg-slate-800" // Added bg color to see connection issues
     />
   );
 };

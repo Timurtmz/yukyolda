@@ -10,18 +10,18 @@ export const api = {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API GET Error:', error);
       throw error;
     }
   },
-  
+
   async post(endpoint: string, data: any) {
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
@@ -32,11 +32,11 @@ export const api = {
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API POST Error:', error);
@@ -54,11 +54,11 @@ export const api = {
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API PUT Error:', error);
@@ -74,11 +74,11 @@ export const api = {
           'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API DELETE Error:', error);
@@ -92,7 +92,7 @@ export const jobsApi = {
   getAll: () => api.get('/jobs'),
   getById: (id: string) => api.get(`/jobs/${id}`),
   create: (data: any) => api.post('/jobs', data),
-  accept: (id: string) => api.post(`/jobs/${id}/accept`),
+  accept: (id: string) => api.post(`/jobs/${id}/accept`, {}),
 };
 
 export const authApi = {

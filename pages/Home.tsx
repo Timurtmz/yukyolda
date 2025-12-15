@@ -2,6 +2,7 @@ import React from 'react';
 import { Star, MapPin, Navigation, Droplets, TrendingUp, DollarSign, Truck, Bell, CheckCircle, AlertTriangle } from 'lucide-react';
 import { CURRENT_USER, MOCK_FUEL_PRICES } from '../constants';
 import { Tab } from '../types';
+import { GoogleMap } from '../components/GoogleMap';
 
 interface HomeProps {
     onNavigateToRoute: () => void;
@@ -53,24 +54,17 @@ export const Home: React.FC<HomeProps> = ({ onNavigateToRoute }) => {
                 </div>
             </div>
             
-            {/* Mini Map Preview (Simulated) */}
-            <div className="relative h-40 bg-[#151f2e] w-full group cursor-pointer" onClick={onNavigateToRoute}>
-                {/* Simulated Map Styling */}
-                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px]"></div>
-                
-                {/* Route Line */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                    <path d="M 50 150 Q 150 100 250 120 T 350 50" fill="none" stroke="#f97316" strokeWidth="4" strokeLinecap="round" strokeDasharray="10 5" className="animate-pulse" />
-                    <circle cx="50" cy="150" r="6" fill="#3b82f6" stroke="white" strokeWidth="2" />
-                    <circle cx="350" cy="50" r="6" fill="#ef4444" stroke="white" strokeWidth="2" />
-                </svg>
-
-                {/* Truck Icon on map */}
-                <div className="absolute top-[110px] left-[240px] bg-brand-orange p-1.5 rounded-full shadow-lg border-2 border-white transform -translate-x-1/2 -translate-y-1/2">
-                    <Truck size={14} className="text-white" />
-                </div>
-
-                <div className="absolute bottom-3 right-3 bg-brand-dark/80 backdrop-blur px-3 py-1 rounded-full text-xs text-brand-orange border border-brand-orange/30 group-hover:bg-brand-orange group-hover:text-white transition-colors">
+            {/* Mini Map Preview */}
+            <div className="relative h-40 w-full group cursor-pointer overflow-hidden rounded-lg" onClick={onNavigateToRoute}>
+                <GoogleMap
+                  origin="İstanbul, Türkiye"
+                  destination="Ankara, Türkiye"
+                  routeColor="#f97316"
+                  darkMode={true}
+                  height="160px"
+                  showControls={false}
+                />
+                <div className="absolute bottom-3 right-3 bg-brand-dark/80 backdrop-blur px-3 py-1 rounded-full text-xs text-brand-orange border border-brand-orange/30 group-hover:bg-brand-orange group-hover:text-white transition-colors z-10">
                     Rotayı Aç &rarr;
                 </div>
             </div>

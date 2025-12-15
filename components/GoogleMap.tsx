@@ -71,8 +71,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       return;
     }
 
-    if (!apiKey) {
-      setError('Google Maps API key bulunamadı. Lütfen .env.local dosyasında GOOGLE_MAPS_API_KEY değerini ayarlayın.');
+    if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE' || apiKey === '') {
+      setError('Google Maps API key bulunamadı. Lütfen .env.local dosyasında VITE_GOOGLE_MAPS_API_KEY değerini ayarlayın veya Vercel\'de environment variable ekleyin.');
       return;
     }
 

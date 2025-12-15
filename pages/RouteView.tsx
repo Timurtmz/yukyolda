@@ -1,84 +1,34 @@
 import React, { useState } from 'react';
 import { Navigation, Coffee, ShoppingCart, Fuel, AlertTriangle, Truck, Locate } from 'lucide-react';
+import { GoogleMap } from '../components/GoogleMap';
 
 export const RouteView: React.FC = () => {
   const [activeLayer, setActiveLayer] = useState<'all' | 'fuel' | 'food' | 'rest'>('all');
+  const [routeDistance, setRouteDistance] = useState<number>(0);
+  const [routeDuration, setRouteDuration] = useState<number>(0);
 
-  // Simulated map styles for "Dark Mode"
-  const mapStyle = {
-    background: 'radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%)',
-    backgroundImage: `
-        linear-gradient(#334155 1px, transparent 1px),
-        linear-gradient(90deg, #334155 1px, transparent 1px)
-    `,
-    backgroundSize: '40px 40px'
-  };
+  // Örnek rota (gerçek uygulamada aktif işten gelecek)
+  const origin = "İstanbul, Türkiye";
+  const destination = "Ankara, Türkiye";
 
   return (
     <div className="relative h-full w-full overflow-hidden flex flex-col">
       
       {/* Map Container */}
-      <div className="flex-1 relative" style={mapStyle}>
+      <div className="flex-1 relative">
+        <GoogleMap
+          origin={origin}
+          destination={destination}
+          routeColor="#f97316"
+          darkMode={true}
+          height="100%"
+          showControls={true}
+          onRouteCalculated={(distance, duration) => {
+            setRouteDistance(distance);
+            setRouteDuration(duration);
+          }}
+        />
         
-        {/* Simulated Route */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
-            {/* Main Path */}
-            <path 
-                d="M 100 600 C 200 500 150 400 300 300 S 500 100 600 50" 
-                fill="none" 
-                stroke="#f97316" 
-                strokeWidth="6" 
-                strokeLinecap="round"
-                className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]"
-            />
-            {/* Alternative/Traffic Path */}
-            <path 
-                d="M 300 300 C 350 350 400 350 450 300" 
-                fill="none" 
-                stroke="#ef4444" 
-                strokeWidth="6" 
-                strokeLinecap="round"
-                opacity="0.6"
-            />
-        </svg>
-
-        {/* POI Markers */}
-        <div className="absolute top-[280px] left-[280px] z-20">
-             <div className="relative group">
-                <div className="w-8 h-8 bg-brand-card border-2 border-green-500 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform cursor-pointer">
-                    <Fuel size={16} className="text-green-500" />
-                </div>
-                <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-brand-dark/90 text-white text-xs px-2 py-1 rounded whitespace-nowrap hidden group-hover:block border border-gray-700">
-                    Opet - 41.20₺
-                </div>
-             </div>
-        </div>
-
-        <div className="absolute top-[150px] left-[400px] z-20">
-             <div className="w-8 h-8 bg-brand-card border-2 border-blue-500 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform cursor-pointer">
-                 <Coffee size={16} className="text-blue-500" />
-             </div>
-        </div>
-
-        <div className="absolute top-[320px] left-[380px] z-20 animate-pulse">
-             <div className="w-8 h-8 bg-red-500/20 border-2 border-red-500 rounded-full flex items-center justify-center shadow-lg">
-                 <AlertTriangle size={16} className="text-red-500" />
-             </div>
-        </div>
-
-        {/* User Truck Marker */}
-        <div className="absolute bottom-20 left-20 z-30 transition-all duration-1000">
-             <div className="relative">
-                 <div className="w-12 h-12 bg-brand-orange rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.5)] border-4 border-brand-dark">
-                    <Truck size={20} className="text-white fill-current" />
-                 </div>
-                 <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 bg-brand-card/90 backdrop-blur px-3 py-1.5 rounded-lg border border-brand-orange/30 text-center">
-                    <div className="text-xs font-bold text-white">82 km/h</div>
-                    <div className="text-[10px] text-brand-muted">Hız</div>
-                 </div>
-             </div>
-        </div>
-
       </div>
 
       {/* Navigation Overlay Controls */}
@@ -122,12 +72,16 @@ export const RouteView: React.FC = () => {
         
         <div className="flex items-center justify-between text-sm text-brand-muted px-2">
             <div>
-                <span className="block text-white font-bold text-lg">3 sa 45 dk</span>
+                <span className="block text-white font-bold text-lg">
+                    {routeDuration > 0 ? `${Math.floor(routeDuration / 60)} sa ${routeDuration % 60} dk` : '3 sa 45 dk'}
+                </span>
                 <span>Kalan Süre</span>
             </div>
             <div className="text-right">
-                 <span className="block text-white font-bold text-lg">16:45</span>
-                <span>Tahmini Varış</span>
+                 <span className="block text-white font-bold text-lg">
+                    {routeDistance > 0 ? `${Math.round(routeDistance)} km` : '450 km'}
+                 </span>
+                <span>Mesafe</span>
             </div>
         </div>
       </div>
